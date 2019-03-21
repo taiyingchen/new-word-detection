@@ -20,9 +20,12 @@ class NWD(object):
     """
 
     def __init__(self, dict_file=DEFAULT_DICT, cut=False, tokenizer='jieba'):
+        # TODO: useless currently, remove in future
+        """
         if dict_file == DEFAULT_DICT:
             dict_file = get_absolute_path(dict_file)
         self.dict = get_dict(dict_file)
+        """
         self.cut = cut
 
         if cut:
@@ -43,8 +46,9 @@ class NWD(object):
             # Cut doc to a list of words
             docs = self.cut_docs(docs)
 
-        # Build trie tree
+        # Build trie tree and reverse trie tree
         self.trie = Trie()
+        self.rev_trie = Trie()
         for doc in docs:
             # Regular trie tree
             """
@@ -54,6 +58,7 @@ class NWD(object):
             # PAT tree, build on semi-infinite string
             for l in range(len(doc)):
                 self.trie.build(doc[l:])
+                self.rev_trie.build(doc[::-1][l:])
 
     def detect(self, docs):
         """Detect new words from documents
