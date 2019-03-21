@@ -26,6 +26,8 @@ class NWD(object):
             dict_file = get_absolute_path(dict_file)
         self.dict = get_dict(dict_file)
         """
+        self.trie = Trie()
+        self.rev_trie = Trie()
         self.cut = cut
 
         if cut:
@@ -34,7 +36,7 @@ class NWD(object):
             else:
                 raise ValueError(f'Unknown tokenizer {tokenizer}')
 
-    def fit(self, docs):
+    def fit(self, docs, ngram=6):
         """Fit model according to documents
 
         Returns
@@ -47,18 +49,17 @@ class NWD(object):
             docs = self.cut_docs(docs)
 
         # Build trie tree and reverse trie tree
-        self.trie = Trie()
-        self.rev_trie = Trie()
         for doc in docs:
             # Regular trie tree
             """
             self.trie.build(doc)
             """
+            rev_doc = doc[::-1]
 
             # PAT tree, build on semi-infinite string
             for l in range(len(doc)):
-                self.trie.build(doc[l:])
-                self.rev_trie.build(doc[::-1][l:])
+                self.trie.build(doc[l:l+ngram])
+                self.rev_trie.build(rev_doc[l:l+ngram])
 
     def detect(self, docs):
         """Detect new words from documents
