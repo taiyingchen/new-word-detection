@@ -4,7 +4,7 @@ import pickle
 
 class Trie(object):
     def __init__(self):
-        self.root = {}
+        self.root = {'children': {}}
         self.total = 0
         self.trie_file_path = os.path.join(
             os.path.dirname(__file__), "./Trie.pkl")
@@ -13,25 +13,23 @@ class Trie(object):
         """Build trie from a list of tokens
         """
         node = self.root
-        sent = ''
         for token in tokens:
-            sent += token
-            if token not in node:
-                node[token] = {'freq': 0, 'value': sent}
-            node = node[token]
+            if token not in node['children']:
+                node['children'][token] = {'freq': 0, 'children': {}}
+            node = node['children'][token]
             node['freq'] += 1
             self.total += 1
 
     def get(self, tokens):
-        result = {'found': True}
+        result = {'found': True, 'value': ''}
         node = self.root
         for token in tokens:
-            if token not in node:
+            if token not in node['children']:
                 result['found'] = False
                 return result
-            node = node[token]
-            result['value'] = node['value']
-            result['freq'] = node['freq']
+            node = node['children'][token]
+            result = {**result, **node}
+            result['value'] += token
         return result
 
     def __len__(self):
