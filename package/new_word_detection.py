@@ -74,3 +74,12 @@ class NWD(object):
         for i, doc in enumerate(docs):
             docs[i] = [word for word in self.tokenizer.cut(doc)]
         return docs
+
+    def test(self, docs):
+        """Testing
+        """
+        check_docs(docs)
+        if self.cut:
+            # Cut doc to a list of words
+            docs = self.cut_docs(docs)
+        return docs

@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3 class="text-center">系統測試</h3>
+
+<form action="" method="get">
+    <div class="form-group">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">資料匯入</span>
+            </div>
+            <textarea class="form-control" rows="10" name="query">{% if query %}{{ query }}{% else %}["這是第一筆測試資料", "這是第二筆測試資料", "這是第三筆測試資料"]{% endif %}</textarea>
+            <button class="btn btn-outline-secondary" type="submit">測試</button>
+        </div>
+    </div>
+
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        {{ error_message }}
+    </div>
+    {% endif %}
+
+    {% for row in results %}
+    <div class="card">
+        <div class="card-body">
+            <p class="card-text">{{ row }}</p>
+        </div>
+    </div>
+    {% endfor %}
+</form>
+{% endblock %}

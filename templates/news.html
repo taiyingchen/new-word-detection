@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
-<h3 class="text-center">資料展示</h3>
+<h3 class="text-center">新聞資料</h3>
 
 <form action="" method="get">
     <div class="row justify-content-center">
@@ -14,16 +14,14 @@
         </div>
     </div>
 
-    <div class="row">
-        {% for row in results %}
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{ row[0] }}</h5>
-                <p class="card-text">{{ row[1] }}</p>
-                <p class="card-text"><small class="text-muted">{{row[2] }}</small></p>
-            </div>
+    {% for row in results %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">{{ row[0] }}</h5>
+            <p class="card-text">{{ row[1] }}</p>
+            <p class="card-text"><small class="text-muted">{{row[2] }}</small></p>
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
 </form>
 {% endblock %}
