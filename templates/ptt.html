@@ -14,16 +14,36 @@
         </div>
     </div>
 
+    {% for i, row in results %}
     <div class="row">
-        {% for row in results %}
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{ row[0] }}</h5>
-                <p class="card-text">{{ row[1] }}</p>
-                <p class="card-text"><small class="text-muted">{{row[2] }}</small></p>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ row[0] }}</h5>
+                    <p class="card-text">{{ row[1] }}</p>
+                    <p class="card-text"><small class="text-muted">{{ row[3] }}&nbsp;&nbsp;&nbsp;<i class="far fa-user"></i>&nbsp;{{ row[2] }}</small></p>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                            {% for comment in comment_results[i] %}
+                            <tr>
+                                <td>{{ comment[0] }}</td>
+                                <td>{{ comment[1] }}</td>
+                                <td>{{ comment[2] }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-        {% endfor %}
+        <!-- For ngram info -->
+        <!-- <div class="col-2">
+            <div class="card">
+            </div>
+        </div> -->
     </div>
+    {% endfor %}
 </form>
 {% endblock %}

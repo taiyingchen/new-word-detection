@@ -36,13 +36,11 @@ def news():
         cursor = get_db().cursor()
         sql = f'SELECT title,content,datetime_pub FROM articles WHERE title LIKE "%{query}%" LIMIT {limit}'
         cursor.execute(sql)
-        column_names = cursor.column_names
         results = cursor.fetchall()
     else:
-        column_names = []
         results = []
 
-    return render_template('news.html', query=query, column_names=column_names, results=results)
+    return render_template('news.html', query=query, results=results)
 
 
 @app.route('/ptt')
@@ -52,15 +50,20 @@ def ptt():
     limit = 10
     if query:
         cursor = get_db().cursor()
-        sql = f'SELECT title,content,datetime_pub FROM articles WHERE title LIKE "%{query}%" LIMIT {limit}'
+        sql = f'SELECT title,content,author,datetime_pub,uniID FROM articles_ptt WHERE title LIKE "%{query}%" LIMIT {limit}'
         cursor.execute(sql)
-        column_names = cursor.column_names
         results = cursor.fetchall()
+        comment_results = []
+        for row in results:
+            uniID = row[4]
+            sql = f'SELECT tag,author,content,commentTime FROM articles_comment WHERE parentID="{uniID}"'
+            cursor.execute(sql)
+            comment_results.append(cursor.fetchall())
     else:
-        column_names = []
         results = []
+        comment_results = []
 
-    return render_template('ptt.html', query=query, column_names=column_names, results=results)
+    return render_template('ptt.html', query=query, results=enumerate(results), comment_results=comment_results)
 
 
 @app.route('/dictionary')
