@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, g
 from package.new_word_detection import NWD
+from utils import *
 import mysql.connector
 import json
 
@@ -30,27 +31,32 @@ def index():
 @app.route('/news')
 def news():
     query = request.args.get('query')
-    query = '' if query == None else query
+    page = request.args.get('page')
+    query = parse_args(query, str, '')
+    page = parse_args(page, int, 1)
     limit = 10
     if query:
         cursor = get_db().cursor()
-        sql = f'SELECT title,content,datetime_pub FROM articles WHERE title LIKE "%{query}%" LIMIT {limit}'
+        sql = f'SELECT title,content,datetime_pub FROM articles WHERE title LIKE "%{query}%" LIMIT {limit} OFFSET {(page-1)*limit}'
         cursor.execute(sql)
         results = cursor.fetchall()
     else:
         results = []
 
-    return render_template('news.html', query=query, results=results)
+    return render_template('news.html', query=query, page=page, results=results)
 
 
 @app.route('/ptt')
 def ptt():
     query = request.args.get('query')
-    query = '' if query == None else query
+    page = request.args.get('page')
+    query = parse_args(query, str, '')
+    page = parse_args(page, int, 1)
     limit = 10
     if query:
         cursor = get_db().cursor()
-        sql = f'SELECT title,content,author,datetime_pub,uniID FROM articles_ptt WHERE title LIKE "%{query}%" LIMIT {limit}'
+        sql = f'SELECT title,content,author,datetime_pub,uniID FROM articles_ptt WHERE title LIKE "%{query}%" LIMIT {limit} OFFSET {(page-1)*limit}'
+        print(sql)
         cursor.execute(sql)
         results = cursor.fetchall()
         comment_results = []
@@ -63,7 +69,7 @@ def ptt():
         results = []
         comment_results = []
 
-    return render_template('ptt.html', query=query, results=enumerate(results), comment_results=comment_results)
+    return render_template('ptt.html', query=query, page=page, results=results, comment_results=comment_results)
 
 
 @app.route('/dictionary')

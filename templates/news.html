@@ -25,5 +25,19 @@
         </div>
     </div>
     {% endfor %}
+    
+    {% if query %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                <a class="page-link" href="?query={{ query }}&page={{ page-1 }}">上一頁</a>
+            </li>
+            <li class="page-item disabled"><a class="page-link">第&nbsp;{{ page }}&nbsp;頁</a></li>
+            <li class="page-item {% if results|length < 10 %}disabled{% endif %}">
+                <a class="page-link" href="?query={{ query }}&page={{ page+1 }}">下一頁</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
 </form>
 {% endblock %}

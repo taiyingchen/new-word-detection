@@ -14,14 +14,14 @@
         </div>
     </div>
 
-    {% for i, row in results %}
+    {% for i in range(results|length) %}
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">{{ row[0] }}</h5>
-                    <p class="card-text">{{ row[1] }}</p>
-                    <p class="card-text"><small class="text-muted">{{ row[3] }}&nbsp;&nbsp;&nbsp;<i class="far fa-user"></i>&nbsp;{{ row[2] }}</small></p>
+                    <h5 class="card-title">{{ results[i][0] }}</h5>
+                    <p class="card-text">{{ results[i][1] }}</p>
+                    <p class="card-text"><small class="text-muted">{{ results[i][3] }}&nbsp;&nbsp;&nbsp;<i class="far fa-user"></i>&nbsp;{{ results[i][2] }}</small></p>
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <tbody>
@@ -45,5 +45,19 @@
         </div> -->
     </div>
     {% endfor %}
+
+    {% if query %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                <a class="page-link" href="?query={{ query }}&page={{ page-1 }}">上一頁</a>
+            </li>
+            <li class="page-item disabled"><a class="page-link">第&nbsp;{{ page }}&nbsp;頁</a></li>
+            <li class="page-item {% if results|length < 10 %}disabled{% endif %}">
+                <a class="page-link" href="?query={{ query }}&page={{ page+1 }}">下一頁</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
 </form>
 {% endblock %}
