@@ -1,15 +1,25 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, g
 from package.new_word_detection import NWD
 import mysql.connector
 import json
 
 
 app = Flask(__name__)
-
-db = mysql.connector.connect(user='root', db='thesis')
-cursor = db.cursor()
-
 nwd = NWD()
+
+
+def get_db():
+    if 'db' not in g:
+        g.db = mysql.connector.connect(user='root', db='thesis')
+    return g.db
+
+
+@app.teardown_appcontext
+def close_db(e=None):
+    db = g.pop('db', None)
+    
+    if db is not None:
+        db.close()
 
 
 @app.route('/')
@@ -23,6 +33,7 @@ def news():
     query = '' if query == None else query
     limit = 10
     if query:
+        cursor = get_db().cursor()
         sql = f'SELECT title,content,datetime_pub FROM articles WHERE title LIKE "%{query}%" LIMIT {limit}'
         cursor.execute(sql)
         column_names = cursor.column_names
@@ -40,6 +51,7 @@ def ptt():
     query = '' if query == None else query
     limit = 10
     if query:
+        cursor = get_db().cursor()
         sql = f'SELECT title,content,datetime_pub FROM articles WHERE title LIKE "%{query}%" LIMIT {limit}'
         cursor.execute(sql)
         column_names = cursor.column_names
