@@ -3,10 +3,6 @@ from abc import ABC, abstractmethod
 from .utils import get_absolute_path
 
 
-jieba.set_dictionary(get_absolute_path('dict.txt.big'))
-jieba.load_userdict(get_absolute_path('adept_dict.txt'))
-
-
 class Tokenizer(ABC):
     """Abstract class for tokenizer
     """
@@ -21,7 +17,8 @@ class Jieba(Tokenizer):
     """
 
     def __init__(self):
-        pass
+        jieba.set_dictionary(get_absolute_path('dict.txt.big'))
+        jieba.load_userdict(get_absolute_path('adept_dict.txt'))
         # self.cut = jieba.cut
 
     def cut(self, doc):
