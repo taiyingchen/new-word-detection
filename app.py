@@ -18,7 +18,7 @@ def get_db():
 @app.teardown_appcontext
 def close_db(e=None):
     db = g.pop('db', None)
-    
+
     if db is not None:
         db.close()
 
@@ -80,18 +80,25 @@ def dictionary():
 @app.route('/system')
 def system():
     query = request.args.get('query')
-    query = '' if query == None else query
+    query = parse_args(query, str, '')
+    options = {
+        'sub_url': request.args.get('sub_url'),
+        'sub_punc': request.args.get('sub_punc'),
+        'agg_sub_symbol': request.args.get('agg_sub_symbol'),
+        'split_sent': request.args.get('split_sent')
+    }
+
     error_message = None
     results = []
 
     if query:
         try:
             docs = json.loads(query)
-            results = nwd.test(docs)
+            results = nwd.test(docs, options)
         except Exception as e:
             error_message = str(e)
 
-    return render_template('system.html', query=query, results=results, error_message=error_message)
+    return render_template('system.html', query=query, results=results, options=options, error_message=error_message)
 
 
 if __name__ == '__main__':
