@@ -1,6 +1,7 @@
 from .utils import get_absolute_path, get_dict, check_docs
 from .tokenizer import Jieba
 from .trie import Trie
+from .preprocessing import PreStr
 import logging
 
 
@@ -36,7 +37,7 @@ class NWD(object):
             else:
                 raise ValueError(f'Unknown tokenizer {tokenizer}')
 
-    def fit(self, docs, ngram=6):
+    def fit(self, docs, ngram):
         """Fit model according to documents
 
         Returns
@@ -75,11 +76,24 @@ class NWD(object):
             docs[i] = [word for word in self.tokenizer.cut(doc)]
         return docs
 
-    def test(self, docs):
-        """Testing
+    def test(self, docs, options):
+        """Testing interface
+
+        Parameters
+        ----------
+
         """
         check_docs(docs)
         if self.cut:
             # Cut doc to a list of words
             docs = self.cut_docs(docs)
+        
+        class_methods = PreStr.__dict__ # Get all class methods in PreStr class
+        methods = []
+        for option in options:
+            if options[option]:
+                methods.append(class_methods[option])
+        for i, doc in enumerate(docs):
+            docs[i] = PreStr(doc).pipeline(methods)
+
         return docs
