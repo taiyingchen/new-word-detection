@@ -1,6 +1,9 @@
 import re
+import jieba
 
 SUB_SYMBOL = '。'
+RE_PUNC = r'[\s,.?!@#$%^&*()\'\"]+|[，。？！＠＃＄％＾＆＊（）‘”]+'
+RE_SENT_SEP = r'[.,!?]+|[，。！？]+'
 
 
 class PreStr(str):
@@ -11,7 +14,7 @@ class PreStr(str):
         string = re.sub(r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)', SUB_SYMBOL, self)
         return PreStr(string)
 
-    def sub_punc(self, punc=r'[\s,.?!@#$%^&*()\'\"]+|[，。？！＠＃＄％＾＆＊（）‘”]+'):
+    def sub_punc(self, punc=RE_PUNC):
         """Substitute punctuation to `SUB_SYMBOL`
 
         Parameters
@@ -26,7 +29,7 @@ class PreStr(str):
         string = re.sub(rf'{SUB_SYMBOL}+', SUB_SYMBOL, self)
         return PreStr(string)
 
-    def split_sent(self, sep=r'[.,!?]+|[，。！？]+'):
+    def split_sent(self, sep=RE_SENT_SEP):
         """Split string to a list of sentences
 
         Using `sep` as the delimiter string
@@ -47,3 +50,7 @@ class PreStr(str):
         for method in methods:
             string = method(string)
         return PreStr(string)
+
+
+def is_sent_sep(string):
+    return True if re.match(RE_SENT_SEP, string) else False
