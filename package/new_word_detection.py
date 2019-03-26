@@ -66,7 +66,7 @@ class NWD(object):
             # PAT tree build on semi-infinite string
             start = 0
             for i in range(len(doc)):
-                if is_sent_sep(doc[i]):
+                if is_sent_sep(doc[i]):  # Seperate document to sentences
                     sent = doc[start:i]
                     rev_sent = doc[start:i][::-1]
                     for j in range(len(sent)):
