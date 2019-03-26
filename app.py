@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, g
+from flask import Flask, render_template, request, g, flash
 from package.new_word_detection import NWD
 from utils import *
 import mysql.connector
@@ -6,7 +6,7 @@ import json
 
 
 app = Flask(__name__)
-nwd = NWD()
+app.config['SECRET_KEY'] = 'secret'
 
 
 def get_db():
@@ -56,13 +56,12 @@ def ptt():
     if query:
         cursor = get_db().cursor()
         sql = f'SELECT title,content,author,datetime_pub,uniID FROM articles_ptt WHERE title LIKE "%{query}%" LIMIT {limit} OFFSET {(page-1)*limit}'
-        print(sql)
         cursor.execute(sql)
         results = cursor.fetchall()
         comment_results = []
         for row in results:
             uniID = row[4]
-            sql = f'SELECT tag,author,content,commentTime FROM articles_comment WHERE parentID="{uniID}"'
+            sql = f'SELECT tag,author,content FROM articles_comment WHERE parentID="{uniID}"'
             cursor.execute(sql)
             comment_results.append(cursor.fetchall())
     else:
@@ -79,26 +78,51 @@ def dictionary():
 
 @app.route('/system')
 def system():
-    query = request.args.get('query')
-    query = parse_args(query, str, '')
-    options = {
-        'sub_url': request.args.get('sub_url'),
-        'sub_punc': request.args.get('sub_punc'),
-        'agg_sub_symbol': request.args.get('agg_sub_symbol'),
-        'split_sent': request.args.get('split_sent')
-    }
+    return render_template('system/list.html')
 
-    error_message = None
-    results = []
 
-    if query:
-        try:
-            docs = json.loads(query)
-            results = nwd.test(docs, options)
-        except Exception as e:
-            error_message = str(e)
+@app.route('/system/<int:test_id>')
+def test(test_id):
+    if test_id == 1:  # Text interface
+        query = request.args.get('query')
+        query = parse_args(query, str, '')
+        options = {
+            'sub_url': request.args.get('sub_url'),
+            'sub_punc': request.args.get('sub_punc'),
+            'agg_sub_symbol': request.args.get('agg_sub_symbol'),
+            'split_sent': request.args.get('split_sent')
+        }
 
-    return render_template('system.html', query=query, results=results, options=options, error_message=error_message)
+        error_message = None
+        results = []
+
+        if query:
+            try:
+                docs = json.loads(query)
+                nwd = NWD()
+                results = nwd.test(docs, options)
+            except Exception as e:
+                error_message = str(e)
+
+        return render_template('system/text.html', query=query, results=results, options=options, error_message=error_message)
+    elif test_id == 2:  # Construct PAT tree
+        query = request.args.get('query')
+        query = parse_args(query, str, '')
+        cut = request.args.get('cut')
+        cut = True if cut else False
+
+        error_message = None
+        result = ''
+
+        if query:
+            try:
+                nwd = NWD(cut=cut)
+                nwd.fit([query])
+                result = nwd.trie.test()
+            except Exception as e:
+                error_message = str(e)
+
+        return render_template('system/tree.html', query=query, cut=cut, result=result, error_message=error_message)
 
 
 if __name__ == '__main__':
