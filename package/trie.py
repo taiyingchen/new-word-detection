@@ -35,14 +35,14 @@ class Trie(object):
     def visualize(self):
         self.visualize_util(self.root, '')
 
-    def visualize_util(self, node, pre):
+    def visualize_util(self, node, pre, console=True, queue=[]):
         for i, child in enumerate(node['children']):
             if i != len(node['children'])-1:
-                print(f'{pre}├──{child}')
-                self.visualize_util(node['children'][child], pre+'│  ')
+                print(f'{pre}├──{child}') if console else queue.append(f'{pre}├──{child}')
+                self.visualize_util(node['children'][child], pre+'│  ', console, queue)
             else:
-                print(f'{pre}└──{child}')
-                self.visualize_util(node['children'][child], pre+'   ')
+                print(f'{pre}└──{child}') if console else queue.append(f'{pre}└──{child}')
+                self.visualize_util(node['children'][child], pre+'   ', console, queue)
 
     def __len__(self):
         return self.total
@@ -53,3 +53,10 @@ class Trie(object):
         with open(self.trie_file_path, "rb") as f:
             data = pickle.load(f)
         self.root = data
+
+    def test(self):
+        """Testing interface
+        """
+        queue = []
+        self.visualize_util(self.root, '', False, queue)
+        return '\n'.join(queue)
