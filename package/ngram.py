@@ -16,7 +16,7 @@ class Ngram(object):
     def __preprocess_docs(self, docs):
         methods = [
             PreStr.sub_url,
-            PreStr.sub_punc,
+            # PreStr.sub_punc,
             PreStr.agg_sub_symbol
         ]
 

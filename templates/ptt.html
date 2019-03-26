@@ -5,7 +5,7 @@
 <form action="" method="get">
     <div class="row justify-content-center">
         <div class="col-6">
-            <div class="input-group">
+            <div class="input-group mb-3">
                 <input type="text" class="form-control" placeholder="輸入檢索詞" name="query" value="{{ query }}">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary" type="submit"><span class="fa fa-search"></span></button>
@@ -14,24 +14,58 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            {% for chars, count in total_ngram.bigram %}
+                                <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
+                            {% endfor %}
+                        </div>
+                        <div class="col-6">
+                            {% for chars, count in total_ngram.trigram %}
+                                <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% for i in range(results|length) %}
     <div class="row">
         <div class="col-12">
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-body">
                     <h5 class="card-title">{{ results[i][0] }}</h5>
                     <p class="card-text">{{ results[i][1] }}</p>
                     <p class="card-text"><small class="text-muted"><i class="far fa-clock"></i>&nbsp;{{ results[i][3] }}&nbsp;&nbsp;&nbsp;<i class="far fa-user"></i>&nbsp;{{ results[i][2] }}</small></p>
-                    <div class="table-responsive">
+                    <div class="row">
+                        <div class="col-6">
+                            {% for chars, count in ngram_results[i][0] %}
+                            <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
+                            {% endfor %}
+                        </div>
+                        <div class="col-6">
+                            {% for chars, count in ngram_results[i][1] %}
+                            <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#comment{{ i }}">顯示留言</button>
+                    <div class="table-responsive collapse" id="comment{{ i }}">
                         <table class="table table-sm">
                             <tbody>
-                            {% for comment in comment_results[i] %}
-                            <tr class="d-flex">
-                                <td class="col-1">{{ comment[0] }}</td>
-                                <td class="col-2">{{ comment[1] }}</td>
-                                <td class="col-9">{{ comment[2] }}</td>
-                            </tr>
-                            {% endfor %}
+                                {% for comment in comment_results[i] %}
+                                <tr class="d-flex">
+                                    <td class="col-1">{{ comment[0] }}</td>
+                                    <td class="col-2">{{ comment[1] }}</td>
+                                    <td class="col-9">{{ comment[2] }}</td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -40,7 +74,12 @@
         </div>
         <!-- For ngram info -->
         <!-- <div class="col-2">
-            <div class="card">
+            <div class="card mb-3">
+                <div class="card-body">
+                    {% for chars, count in ngram_results[i][0] %}
+                        <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
+                    {% endfor %}
+                </div>
             </div>
         </div> -->
     </div>

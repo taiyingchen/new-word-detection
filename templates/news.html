@@ -5,7 +5,7 @@
 <form action="" method="get">
     <div class="row justify-content-center">
         <div class="col-6">
-            <div class="input-group">
+            <div class="input-group mb-3">
                 <input type="text" class="form-control" placeholder="輸入檢索詞" name="query" value="{{ query }}">
                 <div class="input-group-append">
                     <button class="btn btn-outline-secondary" type="submit"><span class="fa fa-search"></span></button>
@@ -16,7 +16,7 @@
 
     {% for row in results %}
     <div class="row">
-        <div class="card w-100">
+        <div class="card w-100 mb-3">
             <div class="card-body">
                 <h5 class="card-title">{{ row[0] }}</h5>
                 <p class="card-text">{{ row[1] }}</p>
