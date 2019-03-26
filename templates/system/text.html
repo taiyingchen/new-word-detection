@@ -2,7 +2,7 @@
 {% block content %}
 <h3 class="text-center">系統測試</h3>
 
-<form action="" method="get">
+<form action="{{ url_for('test', test_id=1) }}" method="get">
     <div class="card w-100">
         <div class="card-body">
             <div>
@@ -11,11 +11,11 @@
                     <label for="query">文本資料</label>
                     <textarea class="form-control" id="query" rows="5" name="query">{% if query %}{{ query }}{% else %}["這是第一筆測試資料，https://i.imgur.com/FpIteVw.png。", "這是，第二筆。測試？資料！", "這是,第三筆.測試?資料!"]{% endif %}</textarea>
                 </div>
-                <div class="form-check form-check-inline">
+                <div class="form-group form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" id="inlineCheckbox1" name="sub_url" {% if options['sub_url'] %}checked{% endif %}>
                     <label class="form-check-label" for="inlineCheckbox1">取代網址</label>
                 </div>
-                <div class="form-check form-check-inline">
+                <div class="form-group form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" id="inlineCheckbox2" name="sub_punc" {% if options['sub_punc'] %}checked{% endif %}>
                     <label class="form-check-label" for="inlineCheckbox2">取代標點符號</label>
                 </div>
@@ -43,7 +43,7 @@
                     <tbody>
                         {% for row in results %}
                         <tr>
-                           <td>{{ row }}</td> 
+                            <td>{{ row }}</td> 
                         </tr>
                         {% endfor %}
                     </tbody>

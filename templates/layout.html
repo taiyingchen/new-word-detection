@@ -41,19 +41,20 @@
 			<h2 class="text-center">新詞發現</h2>
 		</div>
 		<nav class="nav justify-content-center">
-			<a class="nav-link" href="/">首頁</a>
-			<a class="nav-link" href="/news">新聞資料</a>
-			<a class="nav-link" href="/ptt">PTT資料</a>
-			<a class="nav-link" href="/dictionary">詞庫</a>
-			<a class="nav-link" href="/system">系統測試</a>
+			<a class="nav-link" href="{{ url_for('index') }}">首頁</a>
+			<a class="nav-link" href="{{ url_for('news') }}">新聞資料</a>
+			<a class="nav-link" href="{{ url_for('ptt') }}">PTT資料</a>
+			<a class="nav-link" href="{{ url_for('dictionary') }}">詞庫</a>
+			<a class="nav-link" href="{{ url_for('system') }}">系統測試</a>
 		</nav>
-		<div>
-			{% block content %}
-			{% endblock %}
-		</div>
+
+		{% for message in get_flashed_messages() %}
+		<div class="flash">{{ message }}</div>
+		{% endfor %}
+
+		{% block content %}{% endblock %}
 	</div>
 </body>
-{% block script %}
-{% endblock %}
+{% block script %}{% endblock %}
 
 </html>

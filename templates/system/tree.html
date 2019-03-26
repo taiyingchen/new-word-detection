@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3 class="text-center">系統測試</h3>
+
+<form action="{{ url_for('test', test_id=2) }}" method="get">
+    <div class="card w-100">
+        <div class="card-body">
+            <div>
+                <h5 class="card-title">建立 PAT tree</h5>
+                <div class="form-group">
+                    <label for="query">文本資料</label>
+                    <textarea class="form-control" id="query" rows="5" name="query">{% if query %}{{ query }}{% else %}四十四里外的石獅寺，有四十四隻石獅子，這四十四隻石獅子旁，有四十四棵柿子樹，石老頭吃了澀柿子，躺在石獅子旁捉蝨子。{% endif %}</textarea>
+                </div>
+                <div class="form-group form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="inlineCheckbox1" name="cut" {% if cut %}checked{% endif %}>
+                    <label class="form-check-label" for="inlineCheckbox1">斷詞</label>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-outline-secondary">測試</button>
+                </div>
+            </div>
+        
+            {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+                {{ error_message }}
+            </div>
+            {% endif %}
+        
+            <pre><code>{{ result }}</code></pre>
+        </div>
+    </div>
+</form>
+{% endblock %}
