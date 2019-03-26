@@ -32,6 +32,18 @@ class Trie(object):
             result['value'] += token
         return result
 
+    def visualize(self):
+        self.visualize_util(self.root, '')
+
+    def visualize_util(self, node, pre):
+        for i, child in enumerate(node['children']):
+            if i != len(node['children'])-1:
+                print(f'{pre}├──{child}')
+                self.visualize_util(node['children'][child], pre+'│  ')
+            else:
+                print(f'{pre}└──{child}')
+                self.visualize_util(node['children'][child], pre+'   ')
+
     def __len__(self):
         return self.total
 
