@@ -1,6 +1,6 @@
 from nltk import bigrams, trigrams
 from collections import Counter, defaultdict
-from .preprocessing import PreStr
+from .preprocessing import PreStr, SUB_SYMBOL
 
 class Ngram(object):
     def __init__(self):
@@ -10,8 +10,9 @@ class Ngram(object):
     def fit(self, docs):
         docs = self.__preprocess_docs(docs)
         for doc in docs:
-            self.bigram += Counter(bigrams(doc))
-            self.trigram += Counter(trigrams(doc))
+            for sent in doc.split(SUB_SYMBOL):
+                self.bigram += Counter(bigrams(sent))
+                self.trigram += Counter(trigrams(sent))
         
     def __preprocess_docs(self, docs):
         methods = [
