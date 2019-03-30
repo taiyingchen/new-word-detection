@@ -2,7 +2,7 @@ import re
 import jieba
 
 SUB_SYMBOL = '。'
-RE_PUNC = r'[\s,.?!@#$%^&*()\'\"\\]+|[，。？！＠＃＄％＾＆＊（）‘”、]+'
+RE_PUNC = r'[\s,.?!@#$%^&*()\'\"\\:;]+|[，。？！＠＃＄％＾＆＊（）‘”、：；]+'
 RE_SENT_SEP = r'[.,!?]+|[，。！？]+'
 
 
@@ -23,6 +23,10 @@ class PreStr(str):
             Regular expression for punctuation
         """
         string = re.sub(punc, SUB_SYMBOL, self)
+        return PreStr(string)
+
+    def sub_custom(self, custom):
+        string = re.sub(custom, SUB_SYMBOL, self)
         return PreStr(string)
 
     def agg_sub_symbol(self):
