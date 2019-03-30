@@ -13,12 +13,12 @@ def get_dict(dict_file):
     return kw_dict
 
 
-def get_stopwords(stopwords_file):
-    stopwords = []
-    with open(stopwords_file, 'r') as file:
+def get_list(list_file):
+    return_list = []
+    with open(list_file, 'r') as file:
         for line in file:
-            stopwords.append(line.strip())
-    return stopwords
+            return_list.append(line.strip())
+    return return_list
 
 
 def check_docs(docs):

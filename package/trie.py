@@ -58,5 +58,5 @@ class Trie(object):
         """Testing interface
         """
         queue = []
-        self.visualize_util(self.root, '', False, queue)
+        self.visualize_util(self.root, '', console=False, queue=queue)
         return '\n'.join(queue)
