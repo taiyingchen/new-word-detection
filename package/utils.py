@@ -13,6 +13,14 @@ def get_dict(dict_file):
     return kw_dict
 
 
+def get_stopwords(stopwords_file):
+    stopwords = []
+    with open(stopwords_file, 'r') as file:
+        for line in file:
+            stopwords.append(line.strip())
+    return stopwords
+
+
 def check_docs(docs):
     """Input validation on documents
 
