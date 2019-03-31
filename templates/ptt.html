@@ -14,29 +14,6 @@
         </div>
     </div>
 
-    {% if total_ngram %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-6">
-                            {% for chars, count in total_ngram.bigram %}
-                                <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
-                            {% endfor %}
-                        </div>
-                        <div class="col-6">
-                            {% for chars, count in total_ngram.trigram %}
-                                <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
     {% for i in range(results|length) %}
     <div class="row">
         <div class="col-12">
@@ -45,18 +22,6 @@
                     <h5 class="card-title">{{ results[i][0] }}</h5>
                     <p class="card-text">{{ results[i][1] }}</p>
                     <p class="card-text"><small class="text-muted"><i class="far fa-clock"></i>&nbsp;{{ results[i][3] }}&nbsp;&nbsp;&nbsp;<i class="far fa-user"></i>&nbsp;{{ results[i][2] }}</small></p>
-                    <div class="row">
-                        <div class="col-6">
-                            {% for chars, count in ngram_results[i][0] %}
-                            <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
-                            {% endfor %}
-                        </div>
-                        <div class="col-6">
-                            {% for chars, count in ngram_results[i][1] %}
-                            <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
-                            {% endfor %}
-                        </div>
-                    </div>
                     <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#comment{{ i }}">顯示留言</button>
                     <div class="table-responsive collapse" id="comment{{ i }}">
                         <table class="table table-sm">
@@ -74,16 +39,6 @@
                 </div>
             </div>
         </div>
-        <!-- For ngram info -->
-        <!-- <div class="col-2">
-            <div class="card mb-3">
-                <div class="card-body">
-                    {% for chars, count in ngram_results[i][0] %}
-                        <p class="card-text">{{ ''.join(chars) }}：{{ count }}</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </div> -->
     </div>
     {% endfor %}
 
