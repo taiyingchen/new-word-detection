@@ -15,7 +15,7 @@ def get_dict(dict_file):
 
 def get_list(list_file):
     return_list = []
-    with open(list_file, 'r') as file:
+    with open(list_file, 'r', encoding='utf8') as file:
         for line in file:
             return_list.append(line.strip())
     return return_list
