@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+{% block content %}
+<h3 class="text-center">代名新詞</h3>
+
+{% for i in range(results|length) %}
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{{ queries[i][1] }} </h5>
+                <p class="card-text"><small>{{ queries[i][3] }} 篇貼文、{{ queries[i][4] }} 篇回文</small></p>
+                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#results{{ i }}">顯示結果</button>
+                <div class="collapse" id="results{{ i }}">
+                    <div class="row">
+                        <div class="col-4">
+                            <table class="table table-sm">
+                                <tbody>
+                                    {% for token, tf in results[i] %}
+                                    <tr class="d-flex">
+                                        <td>{{ token }}</td>
+                                        <td>{{ tf }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-8">
+                            <canvas id="chart{{ i }}" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}
+
+{% block script %}
+<script>
+    window.chartColors = [
+        'rgb(255, 99, 132)',
+        'rgb(255, 159, 64)',
+        'rgb(255, 205, 86)',
+        'rgb(75, 192, 192)',
+        'rgb(54, 162, 235)',
+        'rgb(153, 102, 255)',
+        'rgb(201, 203, 207)'
+    ];
+
+    {% for i in range(records|length) %}
+        var ctx = $("#chart{{ i }}")
+
+        datasets = []
+        {% for j in range(records[i]|length) %}
+            dataset = {
+                label: "{{ records[i][j][0] }}",
+                data: {{ records[i][j][1] }},
+                backgroundColor: window.chartColors[{{ j }}],
+                borderColor: window.chartColors[{{ j }}],
+                fill: false
+            }
+            datasets.push(dataset)
+        {% endfor %}
+
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+    {% endfor %}
+
+</script>
+{% endblock %}

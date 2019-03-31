@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, g, flash
 from package.new_word_detection import NWD
-from package.ngram import Ngram
 from utils import *
 import mysql.connector
 import json
-
+import datetime
+from functools import lru_cache
+from collections import defaultdict
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret'
@@ -58,13 +59,10 @@ def ptt():
 
     if query:
         cursor = get_db().cursor()
-        sql = f'SELECT title,content,author,datetime_pub,uniID FROM articles_ptt WHERE title LIKE "%{query}%" LIMIT {limit} OFFSET {(page-1)*limit}'
+        sql = f'SELECT title,content,author,datetime_pub,uniID FROM articles_ptt WHERE content LIKE "%{query}%" LIMIT {limit} OFFSET {(page-1)*limit}'
         cursor.execute(sql)
         results = cursor.fetchall()
-
         comment_results = []
-        ngram_results = []
-        total_ngram = Ngram()
 
         for row in results:
             uniID = row[4]
@@ -72,50 +70,11 @@ def ptt():
             cursor.execute(sql)
             comment_result = cursor.fetchall()
             comment_results.append(comment_result)
-
-            ngram = Ngram()
-            ngram.fit([row[2] for row in comment_result])
-            ngram_results.append((ngram.bigram, ngram.trigram))
-
-        # Remove ngrams not in query
-        remove_set = set()
-        for bigram, trigram in ngram_results:
-            for chars in bigram:
-                remove = True
-                for c in chars:
-                    if c in query:
-                        remove = False
-                if remove:
-                    remove_set.add(chars)
-            for chars in trigram:
-                remove = True
-                for c in chars:
-                    if c in query:
-                        remove = False
-                if remove:
-                    remove_set.add(chars)
-        for chars in remove_set:
-            for bigram, trigram in ngram_results:
-                del bigram[chars]
-                del trigram[chars]
-
-        # Sum total ngram
-        for bigram, trigram in ngram_results:
-            total_ngram.bigram += bigram
-            total_ngram.trigram += trigram
-
-        ngram_len = 10
-        for i, (bigram, trigram) in enumerate(ngram_results):
-            ngram_results[i] = (bigram.most_common(ngram_len), trigram.most_common(ngram_len))
-        total_ngram.bigram = total_ngram.bigram.most_common(ngram_len)
-        total_ngram.trigram = total_ngram.trigram.most_common(ngram_len)
     else:
         results = []
         comment_results = []
-        ngram_results = []
-        total_ngram = None
-    
-    return render_template('ptt.html', query=query, page=page, results=results, comment_results=comment_results, ngram_results=ngram_results, total_ngram=total_ngram)
+
+    return render_template('ptt.html', query=query, page=page, results=results, comment_results=comment_results)
 
 
 @app.route('/dictionary')
@@ -170,6 +129,44 @@ def test(test_id):
                 error_message = str(e)
 
         return render_template('system/tree.html', query=query, cut=cut, result=result, error_message=error_message)
+
+
+@app.route('/pronoun')
+# @lru_cache(maxsize=None)
+def pronoun():
+    limit = 20
+    chart_limit = 7
+
+    cursor = get_db().cursor()
+    sql = f'SELECT * FROM queries'
+    cursor.execute(sql)
+    queries = [q for q in cursor.fetchall()][-2:]
+
+    results = []
+    records = []
+
+    for query in queries:
+        sql = f'SELECT token,SUM(tf) FROM ngram WHERE query_id="{query[0]}" GROUP BY token ORDER BY SUM(tf) DESC LIMIT {limit}'
+        cursor.execute(sql)
+        result = [(token, tf) for token, tf in cursor.fetchall()]
+        results.append(result)
+
+        record = []
+
+        for i in range(chart_limit):
+            token = result[i][0]
+            data = []
+            lookup_table = defaultdict(int)
+
+            sql = f'SELECT MONTH(appear_time),SUM(tf) FROM ngram WHERE query_id="{query[0]}" AND token="{token}" GROUP BY MONTH(appear_time) ORDER BY MONTH(appear_time)'
+            cursor.execute(sql)
+            for month, tf in cursor.fetchall():
+                lookup_table[month-1] = int(tf)
+            data = [lookup_table[j] for j in range(12)]
+            record.append((token, data))
+        records.append(record)
+
+    return render_template('pronoun.html', queries=queries, results=results, records=records)
 
 
 if __name__ == '__main__':
