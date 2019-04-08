@@ -1,9 +1,11 @@
 import re
 import jieba
+from .utils import get_list
+
 
 SUB_SYMBOL = '。'
-RE_PUNC = r'[\s,.?!@#$%^&*()\'\"\\:;=]+|[，。？！＠＃＄％＾＆＊（）‘”、：；＝]+'
-RE_SENT_SEP = r'[.,!?]+|[，。！？]+'
+RE_PUNC = r'[\s,.?!@#$%^&*()\'\"\\:;=~…]+|[，。？！＠＃＄％＾＆＊（）‘”、：；＝～☎]+'
+RE_SENT_SEP = rf'{SUB_SYMBOL}+|[.,!?]+|[，。！？]+'
 
 
 class PreStr(str):
@@ -58,3 +60,17 @@ class PreStr(str):
 
 def is_sent_sep(string):
     return True if re.match(RE_SENT_SEP, string) else False
+
+
+def get_sents_from_doc(doc):
+    start = 0
+    for i in range(len(doc)):
+        # Seperate document to sentences
+        if is_sent_sep(doc[i]):  # Check if char is sep symbol
+            sent = doc[start:i]
+            yield sent
+            start = i + 1
+        elif i == len(doc) - 1:  # End of document, last sentence
+            sent = doc[start:]
+            yield sent
+    return
