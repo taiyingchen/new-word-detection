@@ -38,9 +38,9 @@ class NWD(object):
         self.max_len = max_len
         self.cut = cut
         self.norm_pmi = norm_pmi
-        
-        self.trie = Trie()
-        self.rev_trie = Trie()
+
+        self.trie = defaultdict(int)
+        self.rev_trie = defaultdict(int)
         self.len = 0
 
         if cut:
@@ -110,38 +110,31 @@ class NWD(object):
     def build_tree(self, docs):
         """Build trie tree and reverse trie tree
         """
-
         for doc in docs:
             for sent in get_sents_from_doc(doc):
-                # PAT tree build on semi-infinite string
                 rev_sent = sent[::-1]
-                for j in range(len(sent)):
-                    self.trie.build(sent[j:])
-                    self.rev_trie.build(rev_sent[j:])
+
+                # PAT tree build on semi-infinite string
+                for i in range(len(sent)):
+                    self.trie[sent[i:]] += 1
+                    self.rev_trie[rev_sent[i:]] += 1
                 self.len += len(sent)
 
-    def detect_new_words(self, min_depth, max_depth):
-        for node in self.trie.bfs(min_depth, max_depth):
-            node = self.trie.get(node['value'])
-            node_x = self.trie.get(node['value'][:-1])
-            node_y = self.trie.get(node['value'][1:])
-            xy = node['freq']
-            x = node_x['freq']
-            y = node_y['freq']
-            # xy /= self.len
-            # x /= self.len
-            # y /= self.len
-            _pmi = pmi(xy/self.len, x/self.len, y/self.len)
-            _npmi = npmi(xy/self.len, x/self.len, y/self.len)
-            if _npmi > 0.6:
-                for char in '柯文哲':
-                    if char in node['value']:
-                        print(node['value'], xy)
-                        print(node_x['value'], x)
-                        print(node_y['value'], y)
-                        print('pmi', _pmi)
-                        print('npmi', _npmi)
-                        print('-------')
+        # Build real trie tree
+        self.trie = BTrie().build(self.trie)
+        self.rev_trie = BTrie().build(self.rev_trie)
+
+    def detect_new_words(self, docs, min_freq, threshold, query):
+        cand_words = self.get_candidate_words(docs)
+        for cand_word in cand_words:
+            score, pmi_score, right_entropy_score, left_entropy_score, freq = self.get_score(cand_word)
+            if freq > min_freq and score > threshold:
+                print(cand_word, score)
+                print('pmi:', pmi_score)
+                print('right ent:', right_entropy_score)
+                print('left ent:', left_entropy_score)
+                print('freq:', freq)
+                print('------')
 
     def get_score(self, word):
         """Get score of the word by its pmi and boundary entropy
@@ -186,7 +179,7 @@ class NWD(object):
         # Transform dict to list and differentiate SUB_SYMBOL
         right_tf = []
         left_tf = []
-        
+
         for neighbor, tf in right_neighbors.items():
             if neighbor == SUB_SYMBOL:
                 right_tf += [1] * tf
@@ -212,16 +205,17 @@ class NWD(object):
             docs = self.cut_docs(docs)
             # Set cut to false after tokenization
             self.cut = False
-        
+
         candidate_words = set()
         for doc in docs:
             for sent in get_sents_from_doc(doc):
-                candidate_words |= set([ngram for ngram in everygrams(sent, min_len=2, max_len=self.max_len)])
+                candidate_words |= set([ngram for ngram in everygrams(
+                    sent, min_len=2, max_len=self.max_len)])
 
         return candidate_words
 
-
-    def fit_dev(self, docs):
+    # TODO: Function below use handcraft trie tree, need to remove in future
+    def __fit(self, docs):
         """Fit model according to documents
 
         Returns
@@ -234,36 +228,30 @@ class NWD(object):
         docs = self.preprocess_docs(docs)
 
         # Build trie tree
-        self.build_tree_dev(docs)
+        self.__build_tree(docs)
 
-    def build_tree_dev(self, docs):
+    def __build_tree(self, docs):
         """Build trie tree and reverse trie tree
         """
-        self.trie = defaultdict(int)
-        self.rev_trie = defaultdict(int)
+        self.trie = Trie()
+        self.rev_trie = Trie()
 
         for doc in docs:
             for sent in get_sents_from_doc(doc):
-                rev_sent = sent[::-1]
-
                 # PAT tree build on semi-infinite string
-                for i in range(len(sent)):
-                    self.trie[sent[i:]] += 1
-                    self.rev_trie[rev_sent[i:]] += 1
+                rev_sent = sent[::-1]
+                for j in range(len(sent)):
+                    self.trie.build(sent[j:])
+                    self.rev_trie.build(rev_sent[j:])
                 self.len += len(sent)
 
-        # Build real trie tree
-        self.trie = BTrie().build(self.trie)
-        self.rev_trie = BTrie().build(self.rev_trie)
-
-    def detect_new_words_dev(self, docs, min_freq, threshold, query):
-        cand_words = self.get_candidate_words(docs)
-        for cand_word in cand_words:
-            score, pmi_score, right_entropy_score, left_entropy_score, freq = self.get_score(cand_word)
-            if freq > min_freq and score > threshold:
-                print(cand_word, score)
-                print('pmi:', pmi_score)
-                print('right ent:', right_entropy_score)
-                print('left ent:', left_entropy_score)
-                print('freq:', freq)
-                print('------')
+    def __detect_new_words(self, min_depth, max_depth):
+        for node in self.trie.bfs(min_depth, max_depth):
+            node = self.trie.get(node['value'])
+            node_x = self.trie.get(node['value'][:-1])
+            node_y = self.trie.get(node['value'][1:])
+            xy = node['freq']
+            x = node_x['freq']
+            y = node_y['freq']
+            _pmi = pmi(xy/self.len, x/self.len, y/self.len)
+            _npmi = npmi(xy/self.len, x/self.len, y/self.len)
