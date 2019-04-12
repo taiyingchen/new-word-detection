@@ -5,6 +5,7 @@ from .preprocessing import PreStr, get_sents_from_doc, SUB_SYMBOL
 from .formula import pmi, npmi, entropy
 from nltk import everygrams
 from collections import defaultdict
+from tqdm import tqdm
 import logging
 
 
@@ -124,17 +125,20 @@ class NWD(object):
         self.trie = BTrie().build(self.trie)
         self.rev_trie = BTrie().build(self.rev_trie)
 
-    def detect_new_words(self, docs, min_freq, threshold, query):
-        cand_words = self.get_candidate_words(docs)
-        for cand_word in cand_words:
-            score, pmi_score, right_entropy_score, left_entropy_score, freq = self.get_score(cand_word)
-            if freq > min_freq and score > threshold:
-                print(cand_word, score)
-                print('pmi:', pmi_score)
-                print('right ent:', right_entropy_score)
-                print('left ent:', left_entropy_score)
-                print('freq:', freq)
-                print('------')
+    def get_candidate_words(self, docs):
+        if self.cut:
+            # Cut doc to a list of words
+            docs = self.cut_docs(docs)
+            # Set cut to false after tokenization
+            self.cut = False
+
+        candidate_words = set()
+        for doc in docs:
+            for sent in get_sents_from_doc(doc):
+                candidate_words |= set([ngram for ngram in everygrams(
+                    sent, min_len=2, max_len=self.max_len)])
+
+        return candidate_words
 
     def get_score(self, word):
         """Get score of the word by its pmi and boundary entropy
@@ -199,20 +203,21 @@ class NWD(object):
 
         return score, pmi_score, right_entropy_score, left_entropy_score, freq
 
-    def get_candidate_words(self, docs):
-        if self.cut:
-            # Cut doc to a list of words
-            docs = self.cut_docs(docs)
-            # Set cut to false after tokenization
-            self.cut = False
-
-        candidate_words = set()
-        for doc in docs:
-            for sent in get_sents_from_doc(doc):
-                candidate_words |= set([ngram for ngram in everygrams(
-                    sent, min_len=2, max_len=self.max_len)])
-
-        return candidate_words
+    def detect_new_words(self, docs, min_freq, threshold, query):
+        cand_words = self.get_candidate_words(docs)
+        new_words = []
+        for cand_word in tqdm(cand_words):
+            score, pmi_score, right_entropy_score, left_entropy_score, freq = self.get_score(cand_word)
+            if freq > min_freq and score > threshold:
+                # print(cand_word, score)
+                # print('pmi:', pmi_score)
+                # print('right ent:', right_entropy_score)
+                # print('left ent:', left_entropy_score)
+                # print('freq:', freq)
+                # print('------')
+                new_word = (cand_word, score, pmi_score, right_entropy_score, left_entropy_score, freq)
+                new_words.append(new_word)
+        return new_words
 
     # TODO: Function below use handcraft trie tree, need to remove in future
     def __fit(self, docs):
