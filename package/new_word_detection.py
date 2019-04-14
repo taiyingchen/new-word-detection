@@ -1,7 +1,7 @@
 from .utils import get_absolute_path, get_dict, check_docs, get_list
 from .tokenizer import Jieba
 from .trie import Trie, BTrie
-from .preprocessing import PreStr, get_sents_from_doc, SUB_SYMBOL
+from .preprocessing import PreStr, get_sents_from_doc, filter_new_word, SUB_SYMBOL
 from .formula import pmi, npmi, entropy
 from nltk import everygrams
 from collections import defaultdict
@@ -171,7 +171,8 @@ class NWD(object):
         left_neighbors = defaultdict(int)
         rev_word = word[::-1]
 
-        # Get sentence with word prefix
+        # Get sentence with word prefix and find neighbors besides the word
+        # If sentence is word itself, use `SUB_SYMBOL` to represent its neighbor
         for sent, tf in self.trie.items(word).items():
             neighbor = SUB_SYMBOL if sent == word else sent[len(word)]
             right_neighbors[neighbor] += tf
@@ -180,7 +181,7 @@ class NWD(object):
             neighbor = SUB_SYMBOL if sent == rev_word else sent[len(rev_word)]
             left_neighbors[neighbor] += tf
 
-        # Transform dict to list and differentiate SUB_SYMBOL
+        # Transform dict to list and differentiate `SUB_SYMBOL`
         right_tf = []
         left_tf = []
 
@@ -217,6 +218,11 @@ class NWD(object):
                 # print('------')
                 new_word = (cand_word, score, pmi_score, right_entropy_score, left_entropy_score, freq)
                 new_words.append(new_word)
+        
+        # Filter
+        new_words = filter(filter_new_word, new_words)
+        new_words = list(new_words)
+
         return new_words
 
     # TODO: Function below use handcraft trie tree, need to remove in future

@@ -4,8 +4,9 @@ from .utils import get_list
 
 
 SUB_SYMBOL = '。'
-RE_PUNC = r'[\s,.?!@#$%^&*()\[\]{}\'\"\\/:;=~…]+|[，。？！＠＃＄％＾＆＊（）「」『』《》［］｛｝〔〕／‘”、：；＝～☎]+'
+RE_PUNC = r'[\s,.?!@#$%^&*()\[\]{}\'\"\\/:;=~…]+|[，。？！＠＃＄％＾＆＊（）「」『』《》［］｛｝〔〕【】／‘”、：；＝～☎►▲]+'
 RE_SENT_SEP = rf'{SUB_SYMBOL}+|[.,!?]+|[，。！？]+'
+RE_PREP = '|'.join(get_list('dict/preposition.txt'))
 
 
 class PreStr(str):
@@ -74,3 +75,17 @@ def get_sents_from_doc(doc):
             sent = doc[start:]
             yield sent
     return
+
+
+def filter_new_word(word_tmp):
+    word = ''.join(word_tmp[0])
+    if re.match(r'^(.)\1*$', word):  # Remove word with all same character
+        return False
+    elif re.match(r'^\d+.*|.*\d+$', word):  # Remove word start or end with digit
+        return False
+    elif re.match(rf'^[{RE_PREP}].*|.*[{RE_PREP}]$', word):  # Remove word start or end with preposition
+        return False
+    elif re.match(r'\d*年?\d*月\d*日?', word):  # Remove date
+        return False
+    else:
+        return True
