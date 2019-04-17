@@ -1,10 +1,10 @@
 import jieba
 from abc import ABC, abstractmethod
 from .utils import get_absolute_path
+from .config import config
 
-
-jieba.set_dictionary(get_absolute_path('dict.txt.big'))
-jieba.load_userdict(get_absolute_path('adept_dict.txt'))
+jieba.set_dictionary(config['DEFAULT']['jieba_dict_path'])
+jieba.load_userdict(config['DEFAULT']['jieba_dict_path'])
 jieba.enable_parallel()
 
 
