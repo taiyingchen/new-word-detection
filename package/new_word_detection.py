@@ -1,16 +1,18 @@
-from .utils import get_absolute_path, get_dict, check_docs, get_list
+from .utils import get_absolute_path, check_docs, get_list, get_sistring
 from .tokenizer import Jieba
-from .trie import Trie, BTrie
-from .preprocessing import PreStr, get_sents_from_doc, filter_new_word, SUB_SYMBOL
+from .trie import BTrie
+from .preprocessing import PreStr, get_sents_from_doc, SUB_SYMBOL, RE_PREP
 from .formula import pmi, npmi, entropy
+from .config import config
 from nltk import everygrams
+from marisa_trie import Trie
 from collections import defaultdict
 from tqdm import tqdm
 import logging
+import re
 
 
-RE_CUSTOM = '|'.join(get_list('dict/stopwords.txt'))
-
+RE_CUSTOM = '|'.join(get_list(config['DEFAULT']['stopwords_path']))
 # Log Setting
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -43,6 +45,11 @@ class NWD(object):
         self.trie = defaultdict(int)
         self.rev_trie = defaultdict(int)
         self.len = 0
+
+        # Build existing dictionary based on trie structure
+        sistring = get_sistring(config['DEFAULT']['jieba_dict_path'])
+        sistring = get_sistring(config['DEFAULT']['adept_dict_path'], sistring)
+        self.dict = Trie(sistring)
 
         if cut:
             if tokenizer == 'jieba':
@@ -132,33 +139,49 @@ class NWD(object):
             # Set cut to false after tokenization
             self.cut = False
 
-        candidate_words = set()
-        for doc in docs:
+        cand_words = set()
+        word2doc = defaultdict(list)  # Store word appear in which documents
+        for i, doc in enumerate(docs):
+            doc_set = set()
             for sent in get_sents_from_doc(doc):
-                candidate_words |= set([ngram for ngram in everygrams(
+                doc_set |= set([ngram for ngram in everygrams(
                     sent, min_len=2, max_len=self.max_len)])
+            cand_words |= doc_set
+            for ngram in doc_set:
+                word2doc[ngram].append(i)
 
-        return candidate_words
+        return cand_words, word2doc
 
-    def get_score(self, word):
-        """Get score of the word by its pmi and boundary entropy
+    def get_freq(self, word):
+        """Get word frequency
 
         Parameters
         ----------
         word : str
 
+        Returns
+        -------
+        freq : int
+        """
+        return sum(self.trie.items(''.join(word)).values())
+
+    def get_pmi(self, word):
+        """Get word pmi
+
+        Parameters
+        ----------
+        word : tuple of str
 
         Returns
         -------
-        score : float
+        pmi : float
         """
-        # Calculate pmi
         # Get probability of xy, x and y
         word_x = ''.join(word[:-1])
         word_y = ''.join(word[1:])
         word = ''.join(word)
-        freq = sum(self.trie.items(word).values())
-        xy = freq / self.len
+
+        xy = sum(self.trie.items(word).values()) / self.len
         x = sum(self.trie.items(word_x).values()) / self.len
         y = sum(self.trie.items(word_y).values()) / self.len
         if self.norm_pmi:
@@ -166,9 +189,22 @@ class NWD(object):
         else:
             pmi_score = pmi(xy, x, y)
 
-        # Calculate boundary entropy
+        return pmi_score
+
+    def get_entropy(self, word):
+        """Get word entropy
+
+        Parameters
+        ----------
+        word : str
+
+        Returns
+        -------
+        entropy : float
+        """
         right_neighbors = defaultdict(int)
         left_neighbors = defaultdict(int)
+        word = ''.join(word)
         rev_word = word[::-1]
 
         # Get sentence with word prefix and find neighbors besides the word
@@ -181,7 +217,7 @@ class NWD(object):
             neighbor = SUB_SYMBOL if sent == rev_word else sent[len(rev_word)]
             left_neighbors[neighbor] += tf
 
-        # Transform dict to list and differentiate `SUB_SYMBOL`
+        # Transform dict to list and differentiate `SUB_SYMBOL` neighbor
         right_tf = []
         left_tf = []
 
@@ -200,30 +236,61 @@ class NWD(object):
         right_entropy_score = entropy(right_tf)
         left_entropy_score = entropy(left_tf)
 
-        score = pmi_score + min(right_entropy_score, left_entropy_score)
+        return min(right_entropy_score, left_entropy_score)
 
-        return score, pmi_score, right_entropy_score, left_entropy_score, freq
+    def filter_new_word(self, word_tmp):
+        word = ''.join(word_tmp[0])
+        if re.match(r'^(.)\1*$', word):  # Remove word with all same character
+            return False
+        elif re.match(r'^\d+.*|.*\d+$', word):  # Remove word start or end with digit
+            return False
+        elif re.match(rf'^[{RE_PREP}].*|.*[{RE_PREP}]$', word):  # Remove word start or end with preposition
+            return False
+        elif re.match(r'\d*年?\d*月\d*日?', word):  # Remove date
+            return False
+        elif self.dict.keys(word):  # Remove word in existing dictionary
+            return False
+        else:
+            return True
 
-    def detect_new_words(self, docs, min_freq, threshold, query):
-        cand_words = self.get_candidate_words(docs)
+    def get_word_score(self, word):
+        """Get score of word
+
+        Parameters
+        ----------
+        word : tuple of str
+
+        Returns
+        -------
+        freq : int
+        pmi_score : float
+        entropy : float
+        """
+        freq = self.get_freq(word)
+        pmi_score = self.get_pmi(word)
+        entropy_score = self.get_entropy(word)
+
+        return freq, pmi_score, entropy
+        
+    def detect_new_words(self, docs, min_freq, min_pmi, min_entropy):
+        cand_words, cand_docs_index = self.get_candidate_words(docs)
         new_words = []
         for cand_word in tqdm(cand_words):
-            score, pmi_score, right_entropy_score, left_entropy_score, freq = self.get_score(cand_word)
-            if freq > min_freq and score > threshold:
-                # print(cand_word, score)
-                # print('pmi:', pmi_score)
-                # print('right ent:', right_entropy_score)
-                # print('left ent:', left_entropy_score)
-                # print('freq:', freq)
-                # print('------')
-                new_word = (cand_word, score, pmi_score, right_entropy_score, left_entropy_score, freq)
-                new_words.append(new_word)
+            # `cand_word` is tuple
+            freq = self.get_freq(cand_word)
+            if freq > min_freq:
+                pmi_score = self.get_pmi(cand_word)
+                if pmi_score > min_pmi:
+                    entropy_score = self.get_entropy(cand_word)
+                    if entropy_score > min_entropy:
+                        new_word = (cand_word, freq, pmi_score, entropy_score)
+                        new_words.append(new_word)
         
-        # Filter
-        new_words = filter(filter_new_word, new_words)
+        # Filter new words based on rules
+        new_words = filter(self.filter_new_word, new_words)
         new_words = list(new_words)
 
-        return new_words
+        return new_words, cand_docs_index
 
     # TODO: Function below use handcraft trie tree, need to remove in future
     def __fit(self, docs):

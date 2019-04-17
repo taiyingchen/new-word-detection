@@ -21,6 +21,21 @@ def get_list(list_file):
     return return_list
 
 
+def get_sistring(file, sistring=set()):
+    with open(file, 'rb') as f:
+        for lineno, line in enumerate(f, 1):
+            try:
+                line = line.strip().decode('utf-8')
+                word = line.split(' ')[0]
+                for ch in range(len(word)):
+                    if word[ch:] not in sistring:
+                        sistring.add(word[ch:])
+            except ValueError:
+                raise ValueError(
+                    'invalid dictionary entry in %s at Line %s: %s' % (file, lineno, line))
+    return sistring
+
+
 def check_docs(docs):
     """Input validation on documents
 
