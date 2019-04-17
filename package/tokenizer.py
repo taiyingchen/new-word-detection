@@ -5,6 +5,7 @@ from .utils import get_absolute_path
 
 jieba.set_dictionary(get_absolute_path('dict.txt.big'))
 jieba.load_userdict(get_absolute_path('adept_dict.txt'))
+jieba.enable_parallel()
 
 
 class Tokenizer(ABC):
@@ -21,7 +22,6 @@ class Jieba(Tokenizer):
     """
 
     def __init__(self):
-        # self.cut = jieba.cut
         pass
 
     def cut(self, doc):
