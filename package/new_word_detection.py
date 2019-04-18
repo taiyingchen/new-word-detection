@@ -270,7 +270,7 @@ class NWD(object):
         pmi_score = self.get_pmi(word)
         entropy_score = self.get_entropy(word)
 
-        return freq, pmi_score, entropy
+        return freq, pmi_score, entropy_score
         
     def detect_new_words(self, docs, min_freq, min_pmi, min_entropy):
         cand_words, cand_docs_index = self.get_candidate_words(docs)
