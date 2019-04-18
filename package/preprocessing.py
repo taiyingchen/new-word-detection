@@ -1,12 +1,14 @@
 import re
 import jieba
 from .utils import get_list
+from .config import config
 
 
 SUB_SYMBOL = '。'
-RE_PUNC = r'[\s,.?!@#$%^&*()\[\]{}\'\"\\/:;=~…]+|[，。？！＠＃＄％＾＆＊（）「」『』《》［］｛｝〔〕【】／‘”、：；＝～☎►▲▼▶◎]+'
+RE_PUNC = r'[\s,.?!@#$%^&*()\[\]{}\'\"\\/:;=~…\-_]+|[，。？！＠＃＄％＾＆＊（）「」『』《》［］｛｝〔〕【】／╱‘”、：；＝～☎►▲▼▶◎－＿]+'
 RE_SENT_SEP = rf'{SUB_SYMBOL}+|[.,!?]+|[，。！？]+'
-RE_PREP = '|'.join(get_list('dict/preposition.txt'))
+RE_PREP = '|'.join(get_list(config['DEFAULT']['prep_path']))
+RE_STOPWORDS = '|'.join(get_list(config['DEFAULT']['stopwords_path']))
 
 
 class PreStr(str):

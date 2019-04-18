@@ -1,7 +1,7 @@
 from .utils import get_absolute_path, check_docs, get_list, get_sistring
 from .tokenizer import Jieba
 from .trie import BTrie
-from .preprocessing import PreStr, get_sents_from_doc, SUB_SYMBOL, RE_PREP
+from .preprocessing import PreStr, get_sents_from_doc, SUB_SYMBOL, RE_PREP, RE_STOPWORDS
 from .formula import pmi, npmi, entropy
 from .config import config
 from nltk import everygrams
@@ -12,7 +12,6 @@ import logging
 import re
 
 
-RE_CUSTOM = '|'.join(get_list(config['DEFAULT']['stopwords_path']))
 # Log Setting
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -111,7 +110,7 @@ class NWD(object):
 
     def preprocess_docs(self, docs):
         for i, doc in enumerate(docs):
-            docs[i] = PreStr(doc).sub_url().sub_custom(RE_CUSTOM).sub_punc().agg_sub_symbol()
+            docs[i] = PreStr(doc).sub_url().sub_punc().agg_sub_symbol()
 
         return docs
 
@@ -238,21 +237,6 @@ class NWD(object):
 
         return min(right_entropy_score, left_entropy_score)
 
-    def filter_new_word(self, word_tmp):
-        word = ''.join(word_tmp[0])
-        if re.match(r'^(.)\1*$', word):  # Remove word with all same character
-            return False
-        elif re.match(r'^\d+.*|.*\d+$', word):  # Remove word start or end with digit
-            return False
-        elif re.match(rf'^[{RE_PREP}].*|.*[{RE_PREP}]$', word):  # Remove word start or end with preposition
-            return False
-        elif re.match(r'\d*年?\d*月\d*日?', word):  # Remove date
-            return False
-        elif self.dict.keys(word):  # Remove word in existing dictionary
-            return False
-        else:
-            return True
-
     def get_word_score(self, word):
         """Get score of word
 
@@ -271,6 +255,23 @@ class NWD(object):
         entropy_score = self.get_entropy(word)
 
         return freq, pmi_score, entropy_score
+
+    def filter_new_word(self, word_tmp):
+        word = ''.join(word_tmp[0])
+        if re.match(r'^(.)\1*$', word):  # Remove word with all same character
+            return False
+        elif re.match(r'^\d+.*|.*\d+$', word):  # Remove word start or end with digit
+            return False
+        elif re.match(rf'^[{RE_PREP}].*|.*[{RE_PREP}]$', word):  # Remove word start or end with preposition
+            return False
+        elif re.match(rf'^[{RE_STOPWORDS}].*|.*[{RE_STOPWORDS}]$', word):  # Remove word start or end with preposition
+            return False
+        elif re.match(r'\d*年?\d*月\d*日?', word):  # Remove date
+            return False
+        elif self.dict.keys(word):  # Remove word in existing dictionary
+            return False
+        else:
+            return True
         
     def detect_new_words(self, docs, min_freq, min_pmi, min_entropy):
         cand_words, cand_docs_index = self.get_candidate_words(docs)
@@ -287,7 +288,7 @@ class NWD(object):
                         new_words.append(new_word)
         
         # Filter new words based on rules
-        new_words = filter(self.filter_new_word, new_words)
+        new_words = filter(self.filter_new_word, new_words)  # `filter` function returns a generator
         new_words = list(new_words)
 
         return new_words, cand_docs_index
