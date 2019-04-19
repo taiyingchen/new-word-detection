@@ -1,6 +1,7 @@
 import os
 import pickle
 from queue import Queue
+from collections import defaultdict
 from marisa_trie import BytesTrie
 
 INT_BYTES = 4
@@ -97,5 +98,17 @@ class BTrie(BytesTrie):
         super().__init__(trie.items())
         return self
 
-    def items(self, key):
+    def items(self, key=''):
         return {k: int.from_bytes(v, byteorder=BYTEORDER) for k, v in super().items(key)}
+
+    def merge(self, trie):
+        # Get all elements in both trie
+        self_trie = self.items()
+        other_trie = trie.items()
+        
+        merge_trie = defaultdict(int)
+        merge_trie.update(self_trie)
+        for k, v in other_trie.items():
+            merge_trie[k] += v
+        
+        return self.build(merge_trie)
