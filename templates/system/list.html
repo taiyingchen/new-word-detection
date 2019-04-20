@@ -1,9 +1,0 @@
-{% extends "layout.html" %}
-{% block content %}
-<h3 class="text-center">系統測試</h3>
-
-<div class="list-group">
-    <a href="{{ url_for('test', test_id=1) }}" class="list-group-item list-group-item-action">文本資料匯入</a>
-    <a href="{{ url_for('test', test_id=2) }}" class="list-group-item list-group-item-action">建立 PAT tree</a>
-</div>
-{% endblock %}
