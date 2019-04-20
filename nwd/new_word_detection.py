@@ -1,4 +1,4 @@
-from .utils import get_absolute_path, check_docs, get_list, get_sistring
+from .utils import get_absolute_path, check_docs, get_dict, get_sistring
 from .tokenizer import Jieba
 from .trie import BTrie
 from .preprocessing import PreStr, get_sents_from_doc, SUB_SYMBOL, RE_PREP, RE_STOPWORDS
@@ -50,14 +50,23 @@ class NWD(object):
         self.cut = cut
         self.norm_pmi = norm_pmi
 
+        # Initialize dictionary to build trie
         self.trie = defaultdict(int)
         self.rev_trie = defaultdict(int)
         self.len = 0
 
         # Build existing dictionary based on trie structure
-        sistring = get_sistring(config['DEFAULT']['jieba_dict_path'])
-        sistring = get_sistring(config['DEFAULT']['adept_dict_path'], sistring)
+        sistring = set()
+        if 'jieba_dict_path' in config['DEFAULT']:
+            sistring = get_sistring(config['DEFAULT']['jieba_dict_path'])
+        if 'user_dict_path' in config['DEFAULT']:
+            sistring = get_sistring(
+                config['DEFAULT']['user_dict_path'], sistring)
         self.dict = Trie(sistring)
+        # Get blacklist
+        self.blacklist = set()
+        if 'blacklist_path' in config['DEFAULT']:
+            self.blacklist = get_dict(config['DEFAULT']['blacklist_path'])
 
         if cut:
             if tokenizer == 'jieba':
@@ -88,7 +97,7 @@ class NWD(object):
         new_words : list
         """
         check_docs(docs)
-        
+
         cand_words, cand_docs_index = self.get_candidate_words(docs)
         new_words = []
         for cand_word in tqdm(cand_words):
@@ -301,6 +310,8 @@ class NWD(object):
         elif re.match(r'\d*年?\d*月\d*日?', word):  # Remove date
             return False
         elif self.dict.keys(word):  # Remove word in existing dictionary
+            return False
+        elif word in self.blacklist:  # Remove word in blacklist
             return False
         else:
             return True

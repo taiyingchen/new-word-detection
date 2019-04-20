@@ -1,4 +1,5 @@
 import os
+import re
 
 
 def get_absolute_path(*res):
@@ -6,11 +7,11 @@ def get_absolute_path(*res):
 
 
 def get_dict(dict_file):
-    kw_dict = set()
-    with open(dict_file, 'r') as file:
+    dictionary = set()
+    with open(dict_file, 'r', encoding='utf8') as file:
         for line in file:
-            kw_dict.add(' '.join(line.split()[:-1]))
-    return kw_dict
+            dictionary.add(line.strip())
+    return dictionary
 
 
 def get_list(list_file):
@@ -22,11 +23,15 @@ def get_list(list_file):
 
 
 def get_sistring(file, sistring=set()):
+    re_userdict = re.compile('^(.+?)( [0-9]+)?( [a-z]+)?$', re.U)
     with open(file, 'rb') as f:
         for lineno, line in enumerate(f, 1):
             try:
-                line = line.strip().decode('utf-8')
-                word = line.split(' ')[0]
+                line = line.strip().decode('utf8')
+                if not line:
+                    continue
+                # match won't be None because there's at least one character
+                word, freq, tag = re_userdict.match(line).groups()
                 for ch in range(len(word)):
                     if word[ch:] not in sistring:
                         sistring.add(word[ch:])
