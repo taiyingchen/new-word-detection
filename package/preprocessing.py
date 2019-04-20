@@ -5,7 +5,7 @@ from .config import config
 
 
 SUB_SYMBOL = '。'
-RE_PUNC = r'[\s,.?!@#$%^&*()\[\]{}\'\"\\/:;=~…\-_]+|[，。？！＠＃＄％＾＆＊（）「」『』《》［］｛｝〔〕【】／╱‘”、：；＝～☎►▲▼▶◎－＿]+'
+RE_PUNC = r'[\s,.?!@#$%^&*()\[\]{}\'\"\\/:;=~…\-_|]+|[，。？！＠＃＄％＾＆＊（）「」『』《》［］｛｝〔〕【】／╱‘”、：；＝～☎►▲▼▶◎－＿│]+'
 RE_SENT_SEP = rf'{SUB_SYMBOL}+|[.,!?]+|[，。！？]+'
 RE_PREP = '|'.join(get_list(config['DEFAULT']['prep_path']))
 RE_STOPWORDS = '|'.join(get_list(config['DEFAULT']['stopwords_path']))

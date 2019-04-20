@@ -28,6 +28,12 @@ class NWD(object):
     ----------
     max_len : int
         max length of ngram
+    min_freq : int
+        min frequency threshold
+    min_pmi : float
+        min pmi threshold
+    min_entropy : float
+        min entropy threshold
     cut : bool, optional (default=True)
         Whether cut sequence to word or not
     tokenizer : str, optional (default='jieba')
@@ -36,8 +42,11 @@ class NWD(object):
         Whether normalize pmi or not
     """
 
-    def __init__(self, max_len, cut=True, tokenizer='jieba', norm_pmi=False):
+    def __init__(self, max_len, min_freq, min_pmi, min_entropy, cut=True, tokenizer='jieba', norm_pmi=False):
         self.max_len = max_len
+        self.min_freq = min_freq
+        self.min_pmi = min_pmi
+        self.min_entropy = min_entropy
         self.cut = cut
         self.norm_pmi = norm_pmi
 
@@ -76,9 +85,28 @@ class NWD(object):
 
         Returns
         -------
-        newwords : list
+        new_words : list
         """
         check_docs(docs)
+        
+        cand_words, cand_docs_index = self.get_candidate_words(docs)
+        new_words = []
+        for cand_word in tqdm(cand_words):
+            # `cand_word` is tuple
+            freq = self.get_freq(cand_word)
+            if freq > self.min_freq:
+                pmi_score = self.get_pmi(cand_word)
+                if pmi_score > self.min_pmi:
+                    entropy_score = self.get_entropy(cand_word)
+                    if entropy_score > self.min_entropy:
+                        new_word = (cand_word, freq, pmi_score, entropy_score)
+                        new_words.append(new_word)
+
+        return new_words, cand_docs_index
+
+    def fit_detect(self, docs):
+        self.fit(docs)
+        return self.detect(docs)
 
     def test(self, docs, options):
         """Testing interface
@@ -148,6 +176,10 @@ class NWD(object):
             cand_words |= doc_set
             for ngram in doc_set:
                 word2doc[ngram].append(i)
+
+        # Filter candidiate words based on rules
+        cand_words = filter(self.filter_word, cand_words)  # `filter` function returns a generator
+        cand_words = list(cand_words)
 
         return cand_words, word2doc
 
@@ -256,15 +288,15 @@ class NWD(object):
 
         return freq, pmi_score, entropy_score
 
-    def filter_new_word(self, word_tmp):
-        word = ''.join(word_tmp[0])
+    def filter_word(self, word):
+        word = ''.join(word)
         if re.match(r'^(.)\1*$', word):  # Remove word with all same character
             return False
         elif re.match(r'^\d+.*|.*\d+$', word):  # Remove word start or end with digit
             return False
-        elif re.match(rf'^[{RE_PREP}].*|.*[{RE_PREP}]$', word):  # Remove word start or end with preposition
+        elif re.match(rf'^({RE_PREP}).*|.*({RE_PREP})$', word):  # Remove word start or end with preposition
             return False
-        elif re.match(rf'^[{RE_STOPWORDS}].*|.*[{RE_STOPWORDS}]$', word):  # Remove word start or end with preposition
+        elif re.match(rf'^({RE_STOPWORDS}).*|.*({RE_STOPWORDS})$', word):  # Remove word start or end with preposition
             return False
         elif re.match(r'\d*年?\d*月\d*日?', word):  # Remove date
             return False
@@ -272,23 +304,3 @@ class NWD(object):
             return False
         else:
             return True
-        
-    def detect_new_words(self, docs, min_freq, min_pmi, min_entropy):
-        cand_words, cand_docs_index = self.get_candidate_words(docs)
-        new_words = []
-        for cand_word in tqdm(cand_words):
-            # `cand_word` is tuple
-            freq = self.get_freq(cand_word)
-            if freq > min_freq:
-                pmi_score = self.get_pmi(cand_word)
-                if pmi_score > min_pmi:
-                    entropy_score = self.get_entropy(cand_word)
-                    if entropy_score > min_entropy:
-                        new_word = (cand_word, freq, pmi_score, entropy_score)
-                        new_words.append(new_word)
-        
-        # Filter new words based on rules
-        new_words = filter(self.filter_new_word, new_words)  # `filter` function returns a generator
-        new_words = list(new_words)
-
-        return new_words, cand_docs_index
