@@ -4,7 +4,7 @@ from .utils import get_absolute_path
 from .config import config
 
 jieba.set_dictionary(config['DEFAULT']['jieba_dict_path'])
-jieba.load_userdict(config['DEFAULT']['adept_dict_path'])
+jieba.load_userdict(config['DEFAULT']['user_dict_path'])
 jieba.enable_parallel()
 
 
