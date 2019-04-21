@@ -17,6 +17,7 @@ from nwd.new_word_detection import NWD
 
 # `docs` is a list of str, each element is a document
 docs = ['第一篇文件', '第二篇文件', '第三篇文件']
+
 nwd = NWD(max_len=3, min_freq=10, min_pmi=3, min_entropy=3)
 new_words = nwd.fit_detect(docs)
 ```
