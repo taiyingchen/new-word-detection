@@ -98,7 +98,7 @@ class NWD(object):
         """
         check_docs(docs)
 
-        cand_words, cand_docs_index = self.get_candidate_words(docs)
+        cand_words, word2doc = self.get_candidate_words(docs)
         new_words = []
         for cand_word in tqdm(cand_words):
             # `cand_word` is tuple
@@ -108,10 +108,10 @@ class NWD(object):
                 if pmi_score > self.min_pmi:
                     entropy_score = self.get_entropy(cand_word)
                     if entropy_score > self.min_entropy:
-                        new_word = (cand_word, freq, pmi_score, entropy_score)
+                        new_word = (cand_word, freq, pmi_score, entropy_score, word2doc[cand_word])
                         new_words.append(new_word)
 
-        return new_words, cand_docs_index
+        return new_words
 
     def fit_detect(self, docs):
         self.fit(docs)
