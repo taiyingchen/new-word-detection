@@ -4,6 +4,7 @@ from queue import Queue
 from collections import defaultdict
 from marisa_trie import BytesTrie
 
+
 INT_BYTES = 4
 BYTEORDER = 'big'
 

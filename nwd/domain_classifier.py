@@ -5,7 +5,7 @@ import numpy as np
 
 
 TARGET_MAP = {
-    'ETtoday星光雲': '時尚名人',
+    'ETtoday星光雲': '時尚流行',
     'ETtoday運動雲': '體育運動',
     '社會': '社會議題',
     '生活': '生活消費',
@@ -15,7 +15,7 @@ TARGET_MAP = {
     'ETtoday寵物雲': '休閒娛樂',
     '財經': '金融經濟',
     'ETtoday健康雲': '健康醫療',
-    'ETfashion': '時尚名人',
+    'ETfashion': '時尚流行',
     '民生消費': '生活消費',
     '軍武': '國內外政治',
     'ETtoday車雲': '生活消費',
