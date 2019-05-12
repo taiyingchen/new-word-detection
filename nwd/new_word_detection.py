@@ -172,8 +172,6 @@ class NWD(object):
         if self.cut:
             # Cut doc to a list of words
             docs = self.cut_docs(docs)
-            # Set cut to false after tokenization
-            self.cut = False
 
         cand_words = set()
         word2doc = defaultdict(list)  # Store word appear in which documents
