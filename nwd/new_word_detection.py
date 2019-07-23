@@ -8,15 +8,9 @@ from nltk import everygrams
 from marisa_trie import Trie
 from collections import defaultdict
 from tqdm import tqdm
-import logging
 import re
-
-
-# Log Setting
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-log_console = logging.StreamHandler()
-logger.addHandler(log_console)
+import pickle
+import os
 
 
 class NWD(object):
@@ -57,15 +51,15 @@ class NWD(object):
 
         # Build existing dictionary based on trie structure
         sistring = set()
-        if 'jieba_dict_path' in config['DEFAULT']:
+        if 'jieba_dict_path' in config['DEFAULT'] and os.path.isfile(config['DEFAULT']['jieba_dict_path']) :
             sistring = get_sistring(config['DEFAULT']['jieba_dict_path'])
-        if 'user_dict_path' in config['DEFAULT']:
+        if 'user_dict_path' in config['DEFAULT'] and os.path.isfile(config['DEFAULT']['user_dict_path']) :
             sistring = get_sistring(
                 config['DEFAULT']['user_dict_path'], sistring)
         self.dict = Trie(sistring)
         # Get blacklist
         self.blacklist = set()
-        if 'blacklist_path' in config['DEFAULT']:
+        if 'blacklist_path' in config['DEFAULT'] and os.path.isfile(config['DEFAULT']['blacklist_path']):
             self.blacklist = get_dict(config['DEFAULT']['blacklist_path'])
 
         if cut:
@@ -96,8 +90,6 @@ class NWD(object):
         -------
         new_words : list
         """
-        check_docs(docs)
-
         cand_words, word2doc = self.get_candidate_words(docs)
         new_words = []
         for cand_word in tqdm(cand_words):
@@ -299,17 +291,29 @@ class NWD(object):
         word = ''.join(word)
         if re.match(r'^(.)\1*$', word):  # Remove word with all same character
             return False
-        elif re.match(r'^\d+.*|.*\d+$', word):  # Remove word start or end with digit
-            return False
         elif re.match(rf'^({RE_PREP}).*|.*({RE_PREP})$', word):  # Remove word start or end with preposition
             return False
-        elif re.match(rf'^({RE_STOPWORDS}).*|.*({RE_STOPWORDS})$', word):  # Remove word start or end with preposition
+        elif re.match(rf'^({RE_STOPWORDS}).*|.*({RE_STOPWORDS})$', word):  # Remove word start or end with stopwords
             return False
-        elif re.match(r'\d*年?\d*月\d*日?', word):  # Remove date
+        elif re.match(r'.*年?\d*月\d*日?', word):  # Remove date
             return False
         elif self.dict.keys(word):  # Remove word in existing dictionary
             return False
         elif word in self.blacklist:  # Remove word in blacklist
             return False
-        else:
+        elif re.match(r'^[\u4E00-\u9FD5a-zA-Z]+$', word):
             return True
+
+    def merge(self, nwd):
+        if type(nwd) != type(self):
+            raise TypeError(f'Type {type(nwd)} not equal to {type(self)}')
+        
+        self.trie.merge(nwd.trie)
+        self.rev_trie.merge(nwd.rev_trie)
+        self.len += nwd.len
+
+        return self
+
+    def save(self, file_path):
+        with open(file_path, 'wb') as file:
+            pickle.dump(self, file)

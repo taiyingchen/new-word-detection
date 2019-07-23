@@ -16,6 +16,12 @@ def npmi(xy, x, y):
     return pmi(xy, x, y) / (-log2(xy))
 
 
+def epmi(xy, x, y, k):
+    """Expected pointwise mutual information
+    """
+    return log2(xy**k/(x*y))
+
+
 def entropy(neighbors):
     """Compute entropy of a list of items
 
