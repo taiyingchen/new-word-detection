@@ -90,7 +90,13 @@ class NWD(object):
         -------
         new_words : list
         """
+        # Cut doc to a list of words        
+        if self.cut:
+            docs = self.cut_docs(docs)
+
+        # Get candidate words
         cand_words, word2doc = self.get_candidate_words(docs)
+
         new_words = []
         for cand_word in tqdm(cand_words):
             # `cand_word` is tuple
@@ -100,7 +106,8 @@ class NWD(object):
                 if pmi_score > self.min_pmi:
                     entropy_score = self.get_entropy(cand_word)
                     if entropy_score > self.min_entropy:
-                        new_word = (cand_word, freq, pmi_score, entropy_score, word2doc[cand_word])
+                        cand_word_str = ''.join(cand_word)
+                        new_word = (cand_word_str, cand_word, len(cand_word_str), freq, pmi_score, entropy_score, word2doc[cand_word])
                         new_words.append(new_word)
 
         return new_words
@@ -129,7 +136,6 @@ class NWD(object):
                 methods.append(class_methods[option])
         for i, doc in enumerate(docs):
             docs[i] = PreStr(doc).pipeline(methods)
-
         return docs
 
     def cut_docs(self, docs):
@@ -140,7 +146,6 @@ class NWD(object):
     def preprocess_docs(self, docs):
         for i, doc in enumerate(docs):
             docs[i] = PreStr(doc).sub_url().sub_punc().agg_sub_symbol()
-
         return docs
 
     def build_tree(self, docs):
@@ -161,10 +166,6 @@ class NWD(object):
         self.rev_trie = BTrie().build(self.rev_trie)
 
     def get_candidate_words(self, docs):
-        if self.cut:
-            # Cut doc to a list of words
-            docs = self.cut_docs(docs)
-
         cand_words = set()
         word2doc = defaultdict(list)  # Store word appear in which documents
         for i, doc in enumerate(docs):
@@ -303,6 +304,8 @@ class NWD(object):
             return False
         elif re.match(r'^[\u4E00-\u9FD5a-zA-Z]+$', word):
             return True
+        else:
+            return False
 
     def merge(self, nwd):
         if type(nwd) != type(self):
