@@ -10,6 +10,23 @@ cd new-word-detection/
 python setup.py install
 ```
 
+Create `.env` file
+
+```sh
+cd new-word-detection/
+cp .env.example .env
+```
+
+`.env` example
+
+```txt
+[DEFAULT]
+stopwords_path = dict/stopwords.txt
+prep_path = dict/preposition.txt
+jieba_dict_path = PATH_TO_JIEBA_DICTIONARY
+user_dict_path = PATH_TO_USER_DICTIONARY
+```
+
 ## Usage
 
 ```python
