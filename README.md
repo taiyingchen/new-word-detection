@@ -25,6 +25,7 @@ stopwords_path = dict/stopwords.txt
 prep_path = dict/preposition.txt
 jieba_dict_path = PATH_TO_JIEBA_DICTIONARY
 user_dict_path = PATH_TO_USER_DICTIONARY
+blacklist_path = PATH_TO_BLACKLIST
 ```
 
 ## Usage
