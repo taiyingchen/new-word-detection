@@ -1,6 +1,6 @@
 jieba==0.39
 marisa-trie==0.7.5
-nltk==3.4
+nltk==3.4.5
 numpy==1.16.2
 scikit-learn==0.20.3
 scipy==1.2.1
