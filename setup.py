@@ -15,7 +15,7 @@ from setuptools import find_packages, setup, Command
 NAME = 'nwd'
 DESCRIPTION = 'New word detection for Chinese'
 URL = 'https://github.com/taiyingchen/new-word-detection'
-EMAIL = 'dying1020@gmail.com'
+EMAIL = 'taiying.tychen@gmail.com'
 AUTHOR = 'Taiying Chen'
 REQUIRES_PYTHON = '>=3.6.0'
 VERSION = '1.0.0'
