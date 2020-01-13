@@ -7,7 +7,7 @@ New word detection for Chinese
 ```sh
 git clone https://github.com/taiyingchen/new-word-detection
 cd new-word-detection/
-python setup.py install
+pip install .
 ```
 
 Create `.env` file
