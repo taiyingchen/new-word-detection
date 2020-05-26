@@ -17,7 +17,7 @@
 | articles_id | `TEXT` |  | 出現文件列表 |
 | domain | `VARCHAR` | 11 | 詞彙分類 |
 | domain_prob | `TEXT` |  | 分類機率 |
-| validation | `INT` | 4 | 人工標記，1為新詞，0為非新詞 |
+| validation | `INT` | 4 | 人工標記，1為新詞，0則否 |
 | origin | `VARCHAR` | 11 | 資料來源 |
 | detect_time | `DATETIME` |  | 新詞出現時間 |
 | create_time | `DATETIME` |  | 欄位創建時間 |
