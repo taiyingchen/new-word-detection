@@ -1,6 +1,6 @@
 # Labeled New Word Data
 
-`new_words_from_news.csv`: Labeled new words from news
+`new_words_from_news.csv`: Labeled new words from news  
 `new_words_from_ptt.csv`: Labeled new words from PTT
 
 ## Structure
