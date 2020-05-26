@@ -13,7 +13,7 @@
 | freq | `INT` | 11 | 詞頻 |
 | pmi | `FLOAT` |  | PMI值 |
 | entropy | `FLOAT` |  | 分歧亂度值 |
-| dict_type | `INT` | 4 |  |
+| dict_type | `INT` | 4 |  |
 | articles_id | `TEXT` |  | 出現文件列表 |
 | domain | `VARCHAR` | 11 | 詞彙分類 |
 | domain_prob | `TEXT` |  | 分類機率 |
